@@ -19,8 +19,8 @@ git clone git@github.com:JeewonHeo/gem-background.git
 cd gem-background/
 ```
 
-## test
-```bash
+## usage
+```console
 $ python3 getHitsFromAOD.py -h
 usage: getHitsFromAOD.py [-h] [--dqm_path DQM_PATH] [--run_number RUN_NUMBER] [--data_path DATA_PATH] [--out_path OUT_PATH]
 
@@ -33,6 +33,6 @@ optional arguments:
   --data_path DATA_PATH
   --out_path OUT_PATH
 
-python3 getHitsFromAOD.py
+$ python3 getHitsFromAOD.py
 ```
 
