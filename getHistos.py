@@ -1,12 +1,13 @@
 import os
 import ROOT
 import uproot
+import argparse
 import numpy as np
 from pathlib import Path
 ROOT.gROOT.SetBatch(True)
 
 
-def selectHotStrips(dqm_path, run_number=357696, threshold=1000):
+def selectHotStrips(dqm_path, run_number=357696, threshold=500):
     dqm_file = dqm_path + f"DQM_V0001_R000{run_number}__ZeroBias__Run2022D-PromptReco-v1__DQMIO.root"
     dqm = uproot.open(dqm_file)
     digis = dqm[f"DQMData/Run {run_number}/GEM/Run summary/Digis"]
@@ -51,7 +52,6 @@ def draw(input_file, hot_strips, h, outfile_name="histos.root", each_chamber=Fal
     f = ROOT.TFile(input_file, "r")
     instLumi = f.instLumi
     events = [instLumi.GetBinContent(i) for i in range(1,21)]
-    print(events)
     tree = f.rec_hits
 
     nHits = tree.GetEntries()
@@ -153,11 +153,19 @@ def draw(input_file, hot_strips, h, outfile_name="histos.root", each_chamber=Fal
         outFile.Close()
 
 if __name__ == "__main__":
-    dqm_path = "/home/jheo/gem-background/"
-    threshold = 500
-    hot_strips = selectHotStrips(dqm_path, threshold=threshold)
-    # print(hot_strips)
-    input_file = "out/out.root"
-    each_chamber = True
+    parser = argparse.ArgumentParser(description='draw histos')
+    parser.add_argument('--dqm_path', type=str,
+            default="/home/jheo/gem-background/")
+    parser.add_argument('--threshold', type=int,
+            default=500)
+    parser.add_argument('--input_path', type=str,
+            default="out/out.root")
+    parser.add_argument('--out_path', type=str,
+            default='histos.root')
+    parser.add_argument('--each_chamber', type=bool,
+            default=False)
+    args = parser.parse_args()
+
+    hot_strips = selectHotStrips(args.dqm_path, threshold=args.threshold)
     h = histos(each_chamber=each_chamber)
-    draw(input_file, hot_strips, h, outfile_name=f'histos_{threshold}.root', each_chamber=each_chamber)
+    draw(args.input_path, hot_strips, h, outfile_name=args.out_path, each_chamber=args.each_chamber)
