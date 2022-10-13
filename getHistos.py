@@ -54,6 +54,15 @@ def draw(input_file, hot_strips, h, outfile_name="histos.root", each_chamber=Fal
     events = [instLumi.GetBinContent(i) for i in range(1,21)]
     tree = f.rec_hits
 
+    xbins = [36, 0.5, 36.5]
+    ybins = [8, 0.5, 8.5]
+    h_p_l1 = ROOT.TH2D('GE11-P-L1', 'GE11-P-L1;chamber;ieta', *xbins, *ybins)
+    h_p_l2 = ROOT.TH2D('GE11-P-L2', 'GE11-P-L2;chamber;ieta', *xbins, *ybins)
+    h_m_l1 = ROOT.TH2D('GE11-M-L1', 'GE11-M-L1;chamber;ieta', *xbins, *ybins)
+    h_m_l2 = ROOT.TH2D('GE11-M-L2', 'GE11-M-L2;chamber;ieta', *xbins, *ybins)
+    h_instlumi = ROOT.TH1F('', 'instLumi;instLumi;nEvent', 20, 0, 2)
+
+
     nHits = tree.GetEntries()
     count = 0
     per = 0
@@ -85,6 +94,17 @@ def draw(input_file, hot_strips, h, outfile_name="histos.root", each_chamber=Fal
         good_strip_ratio = 1 - len(bad_strips) / 384
         scale = scale / (good_strip_ratio * events[int(lumi//1000)])  # 17699 -> 17
 
+        if region == 1:
+            if layer == 1:
+                h_p_l1.Fill(chamber, ieta, scale)
+            elif layer == 2:
+                h_p_l2.Fill(chamber, ieta, scale)
+        elif region == -1:
+            if layer == 1:
+                h_m_l1.Fill(chamber, ieta, scale)
+            elif layer == 2:
+                h_m_l2.Fill(chamber, ieta, scale)
+
         if each_chamber:
             h[f'{region}_{layer}_{chamber}_{ieta}'].Fill(lumi / 10000, scale)
         else:
@@ -92,6 +112,23 @@ def draw(input_file, hot_strips, h, outfile_name="histos.root", each_chamber=Fal
                 h[f'{region}_{layer}_{ieta}_even'].Fill(lumi / 10000, scale)
             else:
                 h[f'{region}_{layer}_{ieta}_odd'].Fill(lumi / 10000, scale)
+
+
+    cvs = ROOT.TCanvas('', '', 1600, 1200)
+    for j, h in enumerate([h_p_l1, h_p_l2, h_m_l1, h_m_l2]):
+        for i in range(1, 37):
+            h.GetXaxis().SetBinLabel(h.GetXaxis().FindBin(i), str(i))
+        for i in range(1, 9):
+            h.GetYaxis().SetBinLabel(h.GetYaxis().FindBin(i), str(i))
+        h.SetStats(0)
+        cvs.SetGrid()
+        cvs.SetRightMargin(0.11)
+        h.Draw('colz')
+        cvs.SaveAs(f'tmp{j}.png')
+
+
+    pass
+
 
     if not os.path.isdir(f'lumipng_{threshold}'):
         os.mkdir(f'lumipng_{threshold}')
@@ -167,5 +204,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     hot_strips = selectHotStrips(args.dqm_path, threshold=args.threshold)
-    h = histos(each_chamber=each_chamber)
+    h = histos(each_chamber=args.each_chamber)
     draw(args.input_path, hot_strips, h, outfile_name=args.out_path, each_chamber=args.each_chamber)
