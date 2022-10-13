@@ -41,7 +41,7 @@ $ python3 getHitsFromAOD.py
 
 ## get lumi vs hitrate from hits
 need dqm file
-```bash
+```console
 $ python3 getHistos.py -h
 usage: getHistos.py [-h] [--dqm_path DQM_PATH] [--threshold THRESHOLD]
                     [--input_path INPUT_PATH] [--out_path OUT_PATH]
