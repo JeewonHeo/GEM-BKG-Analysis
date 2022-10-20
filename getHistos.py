@@ -203,6 +203,7 @@ if __name__ == "__main__":
             default=False)
     args = parser.parse_args()
 
-    hot_strips = selectHotStrips(args.dqm_path, threshold=args.threshold)
+    threshold = args.threshold
+    hot_strips = selectHotStrips(args.dqm_path, threshold=threshold)
     h = histos(each_chamber=args.each_chamber)
     draw(args.input_path, hot_strips, h, outfile_name=args.out_path, each_chamber=args.each_chamber)
