@@ -114,20 +114,19 @@ def draw(input_file, hot_strips, h, outfile_name="histos.root", each_chamber=Fal
                 h[f'{region}_{layer}_{ieta}_odd'].Fill(lumi / 10000, scale)
 
 
-    cvs = ROOT.TCanvas('', '', 1600, 1200)
-    for j, h in enumerate([h_p_l1, h_p_l2, h_m_l1, h_m_l2]):
-        for i in range(1, 37):
-            h.GetXaxis().SetBinLabel(h.GetXaxis().FindBin(i), str(i))
-        for i in range(1, 9):
-            h.GetYaxis().SetBinLabel(h.GetYaxis().FindBin(i), str(i))
-        h.SetStats(0)
-        cvs.SetGrid()
-        cvs.SetRightMargin(0.11)
-        h.Draw('colz')
-        cvs.SaveAs(f'tmp{j}.png')
+    # cvs = ROOT.TCanvas('', '', 1600, 1200)
+    # for j, h in enumerate([h_p_l1, h_p_l2, h_m_l1, h_m_l2]):
+    #     for i in range(1, 37):
+    #         h.GetXaxis().SetBinLabel(h.GetXaxis().FindBin(i), str(i))
+    #     for i in range(1, 9):
+    #         h.GetYaxis().SetBinLabel(h.GetYaxis().FindBin(i), str(i))
+    #     h.SetStats(0)
+    #     cvs.SetGrid()
+    #     cvs.SetRightMargin(0.11)
+    #     h.Draw('colz')
+    #     cvs.SaveAs(f'tmp{j}.png')
 
 
-    pass
 
 
     if not os.path.isdir(f'lumipng_{threshold}'):
