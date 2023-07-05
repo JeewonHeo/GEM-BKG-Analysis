@@ -1,0 +1,6 @@
+executable = ./analyseBackground.sh
+universe = vanilla
+getenv = True
+request_memory = 512M
+
+queue
