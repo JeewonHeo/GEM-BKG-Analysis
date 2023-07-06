@@ -9,9 +9,8 @@ from array import array
 from tqdm import tqdm
 from glob import glob
 # sys.path.append('/home/jheo/gem-background/git/jheo/gem-background/cmssw/flower/backgorund')
-from background import select_hot_strips, select_hot_strips_fit
+from background import select_hot_strips, select_hot_strips_fit, get_on_vfats
 ROOT.gROOT.SetBatch(True)
-
 
 def filter_rechits(file_path, out_path, run_number, hot_strips, bad_chambers, off_bx):
     f = ROOT.TFile.Open(file_path)
@@ -85,11 +84,16 @@ def filter_rechits(file_path, out_path, run_number, hot_strips, bad_chambers, of
         }
     event_num = 0
     for hit in tqdm(rec_hits, total=tot_hits):
+        flower_event = hit.flower_event
+        if flower_event: continue
+
         big_cluster_event = hit.big_cluster_event
         if big_cluster_event: continue
+
         chamber_err = hit.chamber_error
         bunch_id = hit.bunchId
         # if bunch_id not in off_bx: continue
+
         if chamber_err:
             region_str = "M" if hit.region == -1 else "P"
             h_bad_chamber[f"{region_str}L{hit.layer}"].Fill(hit.chamber, hit.instLumi)
@@ -125,13 +129,22 @@ def filter_rechits(file_path, out_path, run_number, hot_strips, bad_chambers, of
         hit_cluster = [digi for digi in range(first_strip, first_strip + cluster_size)]
 
         include_hot_strip = False
-        for strip in hit_cluster:
-            if strip in bad_strips:
+        for digi in hit_cluster:
+            if digi in bad_strips:
                 include_hot_strip = True
                 break
         if include_hot_strip: continue
 
-        good_strip_ratio = 1 - len(bad_strips) / 384
+        on_vfats = get_on_vfats(hit)
+        for tmp_ieta in range(1, 9):
+            if len(on_vfats[tmp_ieta]) == 0: continue
+
+        on_strips = [digi for digi in range(sec*128, 128 + sec*128) \
+                for sec in on_vfats[ieta]]
+        bad_strips = [digi for digi in bad_strips if digi in on_strips]
+
+        good_strip_ratio = 1 - len(bad_strips) / (128 * len(on_vfats[ieta]))
+
         good_eta_part_area = area[ieta][chamber%2] * good_strip_ratio
         scale = fill_factor * event_per_sec / good_eta_part_area
 
@@ -176,7 +189,7 @@ def filter_rechits(file_path, out_path, run_number, hot_strips, bad_chambers, of
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='get hits')
     parser.add_argument('--input_path', type=str,
-            default="/store/user/jheo/ZeroBias/359691/230116_021159/0000/output_1.root")
+            default="/eos/user/j/jheo/ZeroBias/8754_367416-v1/230705_093329/0000/histo_1.root")
     parser.add_argument('--output_path', type=str,
             default='filtered_hits/')
     parser.add_argument('--output_name', type=str,
