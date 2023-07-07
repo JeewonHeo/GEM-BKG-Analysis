@@ -22,20 +22,27 @@ cosmic_runs = {
         }
 
 colliding = True
+lumimask_path = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23"
+lumimask_dict = {
+        "Run2022E": f"{lumimask_path}/Cert_Collisions2022_eraE_359022_360331_Muon.json",
+        "Run2022G": f"{lumimask_path}/Cert_Collisions2022_eraG_362433_362760_Muon.json",
+        "Run2023C": f"{lumimask_path}/Cert_Collisions2023_eraC_367095_368224_Muon.json",
+        }
 
 for fill in run_eras:
-    if fill != 8754: continue
+    if fill != 8220: continue
     for run_number in runs[fill]:
     # for run_number in cosmic_runs[fill]:  # Cosmics
         # if run_number != 367416: continue
         run_era = run_eras[fill]
         command = f"crab submit -c crabConfig_background.py "
-        command += f"General.requestName={run_era}_{run_number}_Jul2023_BKG_analysis "
+        command += f"General.requestName={run_era}_{run_number}_Jul2023_BKG_analysis_wLumimask "
         if colliding:
             command += f"Data.inputDataset=/ZeroBias/{run_era}-v1/RAW "
         else:
             command += f"Data.inputDataset=/Cosmics/{run_era}-v1/RAW "  # 8456 Cosmics
         command += f"Data.runRange={run_number} "
         command += f"Data.outputDatasetTag={fill}_{run_number}-v1 "
+        command += f"Data.lumiMask='{lumimask_dict[run_era]}'"
         print(command)
         os.system(command)
