@@ -22,15 +22,15 @@ cosmic_runs = {
         }
 
 colliding = True
-lumimask_path = "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23"
+lumimask_path = "https://cms-service-dqmdc.web.cern.ch/CAF/certification"
 lumimask_dict = {
-        "Run2022E": f"{lumimask_path}/Cert_Collisions2022_eraE_359022_360331_Muon.json",
-        "Run2022G": f"{lumimask_path}/Cert_Collisions2022_eraG_362433_362760_Muon.json",
-        "Run2023C": f"{lumimask_path}/Cert_Collisions2023_eraC_367095_368224_Muon.json",
+        "Run2022E": f"{lumimask_path}/Collisions22/Cert_Collisions2022_eraE_359022_360331_Muon.json",
+        "Run2022G": f"{lumimask_path}/Collisions22/Cert_Collisions2022_eraG_362433_362760_Muon.json",
+        "Run2023C": f"{lumimask_path}/Collisions23/Cert_Collisions2023_eraC_367095_368224_Muon.json",
         }
 
 for fill in run_eras:
-    if fill != 8220: continue
+    if fill != 8456: continue
     for run_number in runs[fill]:
     # for run_number in cosmic_runs[fill]:  # Cosmics
         # if run_number != 367416: continue
