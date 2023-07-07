@@ -289,7 +289,7 @@ void gemBackground::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         const auto [oh_id, oh_range] = (*iter);
         if (oh_id != chamber_id) continue;
         for (auto oh_status = oh_range.first; oh_status != oh_range.second; oh_status++) {
-          auto tmp = oh_status->missingVFATs();
+          // auto tmp = oh_status->missingVFATs();
           // b_missing_vfat = oh_status->missingVFATs();
           b_zsMask = oh_status->zsMask();
           b_existVFATs = oh_status->existVFATs();
