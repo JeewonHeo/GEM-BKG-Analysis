@@ -102,17 +102,6 @@ def filter_rechits(file_path, out_path, run_number, hot_strips, bad_chambers, of
             else:
                 h_bad_chamber[f"{region_str}L{hit.layer}_off"].Fill(hit.chamber, hit.instLumi)
             continue
-        event = hit.event
-        inst_lumi = hit.instLumi
-        if event_num != event:
-            if event_num < 0: print(event_num)
-            event_num = event
-            h_instlumi.Fill(inst_lumi)
-            if bunch_id not in off_bx:
-                h_bxon.Fill(inst_lumi)
-            else:
-                h_bxoff.Fill(inst_lumi)
-            h_bunchcross.Fill(bunch_id)
 
         region = hit.region
         region_str = 'M' if region == -1 else 'P'
@@ -136,11 +125,29 @@ def filter_rechits(file_path, out_path, run_number, hot_strips, bad_chambers, of
         if include_hot_strip: continue
 
         on_vfats = get_on_vfats(hit)
+        including_nonactivated_ieta = False
         for tmp_ieta in range(1, 9):
-            if len(on_vfats[tmp_ieta]) == 0: continue
+            if len(on_vfats[tmp_ieta]) == 0:
+                including_nonactivated_ieta = True
+                break
 
-        on_strips = [digi for digi in range(sec*128, 128 + sec*128) \
-                for sec in on_vfats[ieta]]
+        if including_nonactivated_ieta:
+            h_bad_chamber[f"{region_str}L{layer}"].Fill(hit.chamber, hit.instLumi)
+            continue
+
+        event = hit.event
+        inst_lumi = hit.instLumi
+        if event_num != event:
+            event_num = event
+            h_instlumi.Fill(inst_lumi)
+            if bunch_id not in off_bx:
+                h_bxon.Fill(inst_lumi)
+            else:
+                h_bxoff.Fill(inst_lumi)
+            h_bunchcross.Fill(bunch_id)
+
+        on_strips = [digi for section in on_vfats[ieta] \
+                for digi in range(section*128, 128 + section*128)]
         bad_strips = [digi for digi in bad_strips if digi in on_strips]
 
         good_strip_ratio = 1 - len(bad_strips) / (128 * len(on_vfats[ieta]))
