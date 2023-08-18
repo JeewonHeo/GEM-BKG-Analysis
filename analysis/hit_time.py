@@ -4,9 +4,9 @@ import numpy as np
 ROOT.gROOT.SetBatch(True)
 
 
-lumi = 0
+lumi = 1
 # f = np.load('fill_8456/hit_time_ieta8.npy', allow_pickle='TRUE').item()
-f = np.load('fill_8754/hit_time_ieta8.npy', allow_pickle='TRUE').item()
+f = np.load('results/fill_8754_datacleaning/hit_time_ieta8.npy', allow_pickle='TRUE').item()
 
 tlst = list(f['hit'].keys())
 tlst.sort()

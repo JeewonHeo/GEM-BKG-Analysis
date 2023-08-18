@@ -39,7 +39,8 @@ def fill(input_file, hot_strips, bad_chambers, h, chamber_events):
     nHits = tree.GetEntries()
     for entry in tqdm(tree, total=nHits):
         lumi = entry.instLumi
-        if lumi < 6000 or lumi > 16000: continue  # Fill 8220
+        # if lumi < 6000 or lumi > 16000: continue  # Fill 8220
+        if lumi < 11000 or lumi > 26000: continue  # Fill '8456
         # if lumi < 9000 or lumi > 21000: continue  # Fill 8754
         region = entry.region
         region_str = 'M' if region == -1 else 'P'
@@ -133,10 +134,12 @@ if __name__ == "__main__":
     runs_list = {
             8149: [357802, 357803, 357804, 357805, 357806, 357807, 357808, 357809, 357812, 357813, 357814, 357815],
             8220: [359691, 359693, 359694],
-            8456: [362433, 362435, 362437, 362438, 362439],
+            # 8456: [362433, 362435, 362437, 362438, 362439],
+            8456: [362433, 362437, 362438, 362439],
             8754: [367406, 367413, 367415, 367416],
             }
     fill_number = int(file_path[-4:])
+    fill = 8754
     run_era = run_eras[fill_number]
     runs = runs_list[fill_number]
 
