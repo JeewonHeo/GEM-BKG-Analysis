@@ -98,16 +98,21 @@ private:
   edm::Service<TFileService> fs_;
 
   TTree *t_rec_hits;
-  float b_instLumi;
   long b_event, b_eventTime;
-  int b_bunchId, b_orbitNumber;
-  int b_region, b_layer, b_chamber, b_ieta, b_chamber_error;
-  int b_first_strip, b_cluster_size;
-  int b_flower_event;
-  int b_big_cluster_event;
+  float b_instLumi;
+	int b_bunchId, b_orbitNumber;
+  int b_flower_event, b_big_cluster_event;
+
+  int hit_region, hit_layer, hit_chamber, hit_ieta, hit_chamber_error;
+  int hit_first_strip, hit_cluster_size;
+  uint32_t hit_zsMask;
+  uint32_t hit_existVFATs;
+
+  std::vector<int> b_region, b_layer, b_chamber, b_ieta, b_chamber_error;
+  std::vector<int> b_first_strip, b_cluster_size;
+  std::vector<uint32_t> b_zsMask;
+  std::vector<uint32_t> b_existVFATs;
   // uint32_t b_missing_vfat;
-  uint32_t b_zsMask;
-  uint32_t b_existVFATs;
   std::map<Key5, long> n_hits_each_eta;
 
 
@@ -115,8 +120,8 @@ private:
 };
 
 gemBackground::gemBackground(const edm::ParameterSet& iConfig)
-  : hGEMGeom_(esConsumes()),
-    hGEMGeomRun_(esConsumes<edm::Transition::BeginRun>()) {
+  : hGEMGeom_(esConsumes()), 
+	  hGEMGeomRun_(esConsumes<edm::Transition::BeginRun>()) {
   oh_status_collection_ = consumes<GEMOHStatusCollection>(iConfig.getParameter<edm::InputTag>("OHInputLabel"));
   vfat_status_collection_ = consumes<GEMVFATStatusCollection>(iConfig.getParameter<edm::InputTag>("VFATInputLabel"));
   gemRecHits_ = consumes<GEMRecHitCollection>(iConfig.getParameter<edm::InputTag>("gemRecHits"));
@@ -125,23 +130,26 @@ gemBackground::gemBackground(const edm::ParameterSet& iConfig)
 
   t_rec_hits = fs_->make<TTree>("rec_hits", "gem_rec_hits");
   #define BRANCH_(name, suffix) t_rec_hits->Branch(#name, & b_##name, #name "/" #suffix);
-  BRANCH_(instLumi, F);
+	// #define BRANCH_V(name, suffix) t_rec_hits->Branch(#name, & b_##name, #name "/" #suffix);
+	#define BRANCH_V_(name, type) t_rec_hits->Branch(#name, "vector<"#type">", & b_##name );
   BRANCH_(event, l);
   BRANCH_(eventTime, l);
+  BRANCH_(instLumi, F);
   BRANCH_(bunchId, I);
   BRANCH_(orbitNumber, I);
-  BRANCH_(region, I);
-  BRANCH_(layer, I);
-  BRANCH_(chamber, I);
-  BRANCH_(ieta, I);
-  BRANCH_(first_strip, I);
-  BRANCH_(cluster_size, I);
-  BRANCH_(chamber_error, I);
   BRANCH_(big_cluster_event, I);
   BRANCH_(flower_event, I);
+
+  BRANCH_V_(region, Int_t);
+  BRANCH_V_(layer, Int_t);
+  BRANCH_V_(chamber, Int_t);
+  BRANCH_V_(ieta, Int_t);
+  BRANCH_V_(first_strip, Int_t);
+  BRANCH_V_(cluster_size, Int_t);
+  BRANCH_V_(chamber_error, Int_t);
+  BRANCH_V_(zsMask, uint32_t);
+  BRANCH_V_(existVFATs, uint32_t);
   // BRANCH_(missing_vfat, I);
-  BRANCH_(zsMask, I);
-  BRANCH_(existVFATs, I);
 }
 
 gemBackground::~gemBackground() {
@@ -261,6 +269,7 @@ void gemBackground::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   /* */
 
   b_flower_event = 0;
+
   /* Laurant's method */
   for (size_t i = 0; i < max_trigger; ++i) {
     long l1a_diff = 3564 * (record->getOrbitNr() - record->getL1aHistoryEntry(i).getOrbitNr())
@@ -287,13 +296,13 @@ void gemBackground::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
     if (chamber_id.station() != 1)
       continue;
 
-    b_chamber_error = maskChamberWithError(chamber_id, vfat_status_collection, oh_status_collection);
+    hit_chamber_error = maskChamberWithError(chamber_id, vfat_status_collection, oh_status_collection);
     for (auto eta_part: chamber->etaPartitions()) {
       GEMDetId eta_part_id = eta_part->id();
-      b_region = eta_part_id.region();
-      b_layer = eta_part_id.layer();
-      b_chamber = eta_part_id.chamber();
-      b_ieta = eta_part_id.ieta();
+      hit_region = eta_part_id.region();
+      hit_layer = eta_part_id.layer();
+      hit_chamber = eta_part_id.chamber();
+      hit_ieta = eta_part_id.ieta();
       auto range = gemRecHits->get(eta_part_id);
       for (auto iter = oh_status_collection->begin(); iter != oh_status_collection->end(); iter++) {
         const auto [oh_id, oh_range] = (*iter);
@@ -301,33 +310,58 @@ void gemBackground::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
         for (auto oh_status = oh_range.first; oh_status != oh_range.second; oh_status++) {
           // auto tmp = oh_status->missingVFATs();
           // b_missing_vfat = oh_status->missingVFATs();
-          b_zsMask = oh_status->zsMask();
-          b_existVFATs = oh_status->existVFATs();
+          hit_zsMask = oh_status->zsMask();
+          hit_existVFATs = oh_status->existVFATs();
           // if (tmp) {
           // std::cout << eta_part_id << tmp << std::endl;
           // }
         }
       }
-      Key4 key4(b_region, 1, b_layer, b_chamber);
+      Key4 key4(hit_region, 1, hit_layer, hit_chamber);
       for (auto rechit = range.first; rechit != range.second; ++rechit) {
-        b_first_strip = rechit->firstClusterStrip();
-        b_cluster_size = rechit->clusterSize();
-        t_rec_hits->Fill();
-        if (b_flower_event == 0) {
-          for (int s=b_first_strip ; s<(b_first_strip+b_cluster_size) ; s++) {
-            digi_occ_others_[key4]->Fill(s, b_ieta);
+        hit_first_strip = rechit->firstClusterStrip();
+        hit_cluster_size = rechit->clusterSize();
+
+				b_region.push_back(hit_region);
+				b_layer.push_back(hit_layer);
+				b_chamber.push_back(hit_chamber);
+				b_ieta.push_back(hit_ieta);
+				b_chamber_error.push_back(hit_chamber_error);
+				b_first_strip.push_back(hit_first_strip);
+				b_zsMask.push_back(hit_zsMask);
+				b_existVFATs.push_back(hit_existVFATs);
+
+        if (b_flower_event == 1) {
+          for (int s=hit_first_strip ; s<(hit_first_strip+hit_cluster_size) ; s++) {
+            digi_occ_others_[key4]->Fill(s, hit_ieta);
           }
         }
       }  // hits
     }  // eta partition
   }  // chambers
+  t_rec_hits->Fill();
+
+	// Reset
+  b_instLumi = -1;
+  b_bunchId = -1;
+  b_orbitNumber = -1;
+  b_eventTime = -1;
+  b_event = -1;
+
+	b_region.clear();
+	b_layer.clear();
+	b_chamber.clear();
+	b_ieta.clear();
+	b_chamber_error.clear();
+	b_first_strip.clear();
+	b_zsMask.clear();
+	b_existVFATs.clear();
 }
 
 
 // ------------ method called once each job just before starting event loop  ------------
 void gemBackground::beginJob() {
   n_event_ = fs_->make<TH1D>("events", "Events", 2, -0.5, 1.5);
-
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
@@ -337,6 +371,7 @@ void gemBackground::endJob() {
 void gemBackground::beginRun(const edm::Run& run, const edm::EventSetup& iSetup) {
   edm::ESHandle<GEMGeometry> hGEMGeom;
   hGEMGeom = iSetup.getHandle(hGEMGeomRun_);
+
   const GEMGeometry* GEMGeometry_ = &*hGEMGeom;
 
   for (auto station : GEMGeometry_->stations()) {
@@ -346,10 +381,9 @@ void gemBackground::beginRun(const edm::Run& run, const edm::EventSetup& iSetup)
     const char* re_str = re==1?"P":"M";
     for (auto superChamber : station->superChambers()) {
       for (auto chamber : superChamber->chambers()) {
-        GEMDetId chamber_id = chamber->id();
-        int ch = chamber_id.chamber();
-        int la = chamber_id.layer();
-        const char* ls = chamber_id.chamber()%2==0?"L":"S";
+        int ch = chamber->id().chamber();
+        int la = chamber->id().layer();
+        const char* ls = chamber->id().chamber()%2==0?"L":"S";
         Key4 key4(re,st,la,ch);
         digi_occ_others_[key4]= fs_->make<TH2D>(Form("occ_GE%d1-%s-%dL%d-%s", st, re_str, ch, la, ls),
                                                Form("GE%d1_%s_ch%d_L%d (others); Strip; iEta", st, re_str, ch, la),
