@@ -120,7 +120,7 @@ private:
 };
 
 gemBackground::gemBackground(const edm::ParameterSet& iConfig)
-  : hGEMGeom_(esConsumes()), 
+  : hGEMGeom_(esConsumes()),
 	  hGEMGeomRun_(esConsumes<edm::Transition::BeginRun>()) {
   oh_status_collection_ = consumes<GEMOHStatusCollection>(iConfig.getParameter<edm::InputTag>("OHInputLabel"));
   vfat_status_collection_ = consumes<GEMVFATStatusCollection>(iConfig.getParameter<edm::InputTag>("VFATInputLabel"));
@@ -328,10 +328,11 @@ void gemBackground::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 				b_ieta.push_back(hit_ieta);
 				b_chamber_error.push_back(hit_chamber_error);
 				b_first_strip.push_back(hit_first_strip);
+        b_cluster_size.push_back(hit_cluster_size);
 				b_zsMask.push_back(hit_zsMask);
 				b_existVFATs.push_back(hit_existVFATs);
 
-        if (b_flower_event == 1) {
+        if (b_flower_event == 0) {
           for (int s=hit_first_strip ; s<(hit_first_strip+hit_cluster_size) ; s++) {
             digi_occ_others_[key4]->Fill(s, hit_ieta);
           }
@@ -354,6 +355,7 @@ void gemBackground::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
 	b_ieta.clear();
 	b_chamber_error.clear();
 	b_first_strip.clear();
+  b_cluster_size.clear();
 	b_zsMask.clear();
 	b_existVFATs.clear();
 }
