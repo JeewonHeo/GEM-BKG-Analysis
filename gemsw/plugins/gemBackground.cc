@@ -98,7 +98,7 @@ private:
   edm::Service<TFileService> fs_;
 
   TTree *t_rec_hits;
-  long b_event, b_eventTime;
+  long b_event, b_eventTime, b_luminosityBlock;
   float b_instLumi;
 	int b_bunchId, b_orbitNumber;
   int b_flower_event, b_big_cluster_event;
@@ -134,6 +134,7 @@ gemBackground::gemBackground(const edm::ParameterSet& iConfig)
 	#define BRANCH_V_(name, type) t_rec_hits->Branch(#name, "vector<"#type">", & b_##name );
   BRANCH_(event, l);
   BRANCH_(eventTime, l);
+  BRANCH_(luminosityBlock, l);
   BRANCH_(instLumi, F);
   BRANCH_(bunchId, I);
   BRANCH_(orbitNumber, I);
@@ -290,6 +291,7 @@ void gemBackground::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   b_orbitNumber = iEvent.orbitNumber();
   b_eventTime = iEvent.time().unixTime();
   b_event = iEvent.id().event();
+  b_luminosityBlock = iEvent.id().luminosityBlock();
 
   for (auto chamber: GEMGeometry_->chambers()) {
     GEMDetId chamber_id = chamber->id();
@@ -348,6 +350,7 @@ void gemBackground::analyze(const edm::Event& iEvent, const edm::EventSetup& iSe
   b_orbitNumber = -1;
   b_eventTime = -1;
   b_event = -1;
+  b_luminosityBlock = -1;
 
 	b_region.clear();
 	b_layer.clear();
