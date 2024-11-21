@@ -37,7 +37,7 @@ lumimask_dict = {
         "Run2022E": f"{lumimask_path}/Collisions22/Cert_Collisions2022_eraE_359022_360331_Muon.json",
         "Run2022G": f"{lumimask_path}/Collisions22/Cert_Collisions2022_eraG_362433_362760_Muon.json",
         "Run2023C": f"{lumimask_path}/Collisions23/Cert_Collisions2023_eraC_367095_368823_Muon.json",
-        "Run2023I": f"{lumimask_path}/Collisions24/2024I_Muon.json",
+        "Run2024I": f"{lumimask_path}/Collisions24/2024I_Muon.json",
         }
 
 for fill in run_eras:
