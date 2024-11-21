@@ -22,7 +22,7 @@ runs = {
         9523: [379454, 379456],
         9701: [381484],
         10190: [386505, 386508, 386509],
-        10226: [386924. 396925],
+        10226: [386924, 396925],
         }
 
 cosmic_runs = {
@@ -37,21 +37,22 @@ lumimask_dict = {
         "Run2022E": f"{lumimask_path}/Collisions22/Cert_Collisions2022_eraE_359022_360331_Muon.json",
         "Run2022G": f"{lumimask_path}/Collisions22/Cert_Collisions2022_eraG_362433_362760_Muon.json",
         "Run2023C": f"{lumimask_path}/Collisions23/Cert_Collisions2023_eraC_367095_368823_Muon.json",
+        "Run2023I": f"{lumimask_path}/Collisions24/2024I_Muon.json",
         }
 
 for fill in run_eras:
-    if fill != 9701: continue
+    if fill != 10190: continue
     for run_number in runs[fill]:
     # for run_number in cosmic_runs[fill]:  # Cosmics
         run_era = run_eras[fill]
         command = f"crab submit -c crabConfig_background.py "
-        command += f"General.requestName={run_era}_{run_number}_30Jun2024_BKG_analysis_wolumimask-v1 "
+        command += f"General.requestName={run_era}_{run_number}_21Nov2024_BKG_analysis_wlumimask-v1 "
         if colliding:
             command += f"Data.inputDataset=/ZeroBias/{run_era}-v1/RAW "
         else:
             command += f"Data.inputDataset=/Cosmics/{run_era}-v1/RAW "  # 8456 Cosmics
         command += f"Data.runRange={run_number} "
-        command += f"Data.outputDatasetTag={fill}_{run_number}_wolumimask-v1 "
-        # command += f"Data.lumiMask='{lumimask_dict[run_era]}'"
+        command += f"Data.outputDatasetTag={fill}_{run_number}_wlumimask-v1 "
+        command += f"Data.lumiMask='{lumimask_dict[run_era]}'"
         print(command)
         os.system(command)
