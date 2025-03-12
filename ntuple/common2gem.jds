@@ -1,0 +1,6 @@
+executable = ./common2gem.sh
+universe = vanilla
+getenv = True
+request_memory = 4G
+requirements = (OpSysAndVer == "AlmaLinux9")
+queue
